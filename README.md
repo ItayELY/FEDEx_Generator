@@ -1,7 +1,7 @@
 
 # Fedex Genarator
 ### Introduction
-FEDEx Genarator is a system that assists in the process of EDA (Exploratory Data Analysis) sessions. Based on FEDEx work (https://github.com/TAU-DB/FEDEx), it gives the user the option togenerate NL explanations + Visualizations to their queries (Filter/GroupBy/Join) results.
+FEDEx Genarator is a system that assists in the process of EDA (Exploratory Data Analysis) sessions. Based on FEDEx work (https://github.com/TAU-DB/FEDEx), it gives the user the option to generate NL explanations + Visualizations to their queries (Filter/GroupBy/Join) results.
 
 ### The PD-EXPLAIN Python library
 FEDEx is now a part of PD-EXPLAIN! an easy-to-use Python wrapper for Pandas. 
