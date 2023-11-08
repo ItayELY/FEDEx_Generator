@@ -11,7 +11,8 @@ def read(rel_path):
 
 def get_version():
     for line in read('src/fedex_generator/__init__.py').splitlines():
-        if line.startswith('__version__'):
+        if line.startswith('__version__'
+                           ):
             delim = '"' if '"' in line else "'"
             return line.split(delim)[1]
     else:

@@ -13,9 +13,9 @@ from fedex_generator.commons.utils import is_numeric, to_valid_latex
 
 
 
-usetex = matplotlib.checkdep_usetex(True)
-print(f"usetex-{usetex}")
-rc('text', usetex=usetex)
+# usetex = matplotlib.checkdep_usetex(True)
+# print(f"usetex-{usetex}")
+# rc('text', usetex=usetex)
 matplotlib.rcParams.update({'font.size': 16})
 
 START_BOLD = r'$\bf{'
@@ -164,7 +164,7 @@ class BaseMeasure(object):
         return (influence - influence_mean) / np.sqrt(influence_var)
 
     def calc_influence(self, brute_force=False, top_k=TOP_K_DEFAULT,
-                       figs_in_row: int = DEFAULT_FIGS_IN_ROW, show_scores: bool = False, title: str = None, deleted = None):###
+                       figs_in_row: int = DEFAULT_FIGS_IN_ROW, show_scores: bool = True, title: str = None, deleted = None):###
         if deleted:###
             score_dict = deleted
         else:
@@ -172,15 +172,14 @@ class BaseMeasure(object):
                                     ###            
         score_and_col = [(score_dict[col][2], col, score_dict[col][1], score_dict[col][3])
                          for col in score_dict]
-      
-                         
+
         list_scores_sorted = score_and_col
         list_scores_sorted.sort()
         K = top_k ###
         if deleted:
             K = len(deleted.keys())
                         ####
-        results_columns = ["score", "significance", "influence", "explanation", "bin", "influence_vals"]
+        results_columns = ["score", "significance", "influence", "explanation", "bin", "influence_vals", "col"]
         results = pd.DataFrame([], columns=results_columns)
         figures = []
         for score, max_col_name, bins, _ in list_scores_sorted[:-K - 1:-1]:
@@ -237,8 +236,8 @@ class BaseMeasure(object):
                 figures.append(fig)
 
         plt.tight_layout()
-        return figures if len(figures) > 0 else fig
-
+        # return figures if len(figures) > 0 else fig
+        return results
     def calc_interestingness_only(self):
         score_and_col = [(self.score_dict[col][2], col, self.score_dict[col][1], self.score_dict[col][3])
                          for col in self.score_dict]

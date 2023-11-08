@@ -48,8 +48,11 @@ def filter_(db, db_name, attr, op, val, ignore={}):
     f = Filter.Filter(db, ignore, attr, op, val)
     print(f.result_df)
     measure = ExceptionalityMeasure()
-    scores = measure.calc_measure(f, ignore)
+    scores = measure.calc_measure(f, ignore, use_only_columns={})
+    print(scores)
     results = measure.calc_influence(max_key(scores))
+    print(results)
+
 
 
 def group_by(db, db_name, attrs, agg_dict, ignore={}):
@@ -64,13 +67,13 @@ def group_by(db, db_name, attrs, agg_dict, ignore={}):
 
 
 def main():
-    spotify_all = pd.read_csv(r"Datasets/data.csv")
+    spotify_all = pd.read_csv(r"C:\Users\vital_000\PycharmProjects\FEDEx_Generator\spotify_all.csv")
 
-    group_by(spotify_all,
-             "spotify",
-             ["year"],
-             {"popularity": ["mean", "max", "min"]})
-
+    # group_by(spotify_all,
+    #          "spotify",
+    #          ["year"],
+    #          {"popularity": ["mean", "max", "min"]})
+    filter_(spotify_all, 'spotify', 'popularity', '>', 65)
 
 if __name__ == "__main__":
     main()
