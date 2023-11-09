@@ -117,6 +117,38 @@ class NumericBin(Bin):
         return f"({utils.format_bin_item(item)}, {utils.format_bin_item(next_item)}]"
 
 
+class CustomizedNumericBin(Bin):
+    def __init__(self, source_column, result_column, bins):
+        if source_column is not None:
+            binned_source_column, bins = pd.cut(source_column, bins=bins, labels=False, duplicates='drop')
+            bins = utils.drop_nan(bins)
+            if len(bins) > 0:
+                bins[0] -= 1  # stupid hack because pandas cut uses (,] boundaries, and the first bin is [,]
+            binned_result_column = pd.cut(result_column, bins=bins, labels=False, duplicates='drop')
+        else:
+            binned_source_column = None
+            binned_result_column, bins = pd.cut(result_column, bins=bins, labels=False,
+                                                 duplicates='drop')  # .reset_index(drop=True)
+
+        super().__init__(binned_source_column, binned_result_column, "NumericBin")
+        self.bins = bins
+
+    def get_binned_source_column(self):
+        if self.source_column is None:
+            return None
+
+        bins_dict = dict(enumerate(self.bins))
+        return self.source_column.map(bins_dict)
+
+    def get_binned_result_column(self):
+        bins_dict = dict(enumerate(self.bins))
+        return self.result_column.map(bins_dict)
+
+    def get_bin_representation(self, item):
+        item_index = list(self.bins).index(item)
+        next_item = self.bins[item_index + 1]
+        return f"({utils.format_bin_item(item)}, {utils.format_bin_item(next_item)}]"
+
 class CategoricalBin(Bin):
     @staticmethod
     def get_top_k_values(column, k):
@@ -163,7 +195,7 @@ class Bins(object):
     USER_BINNING_METHOD = default_binning_method
     ONLY_USER_BINS = False
 
-    def __init__(self, source_column, result_column, bins_count):
+    def __init__(self, source_column, result_column, bins_count, custom_bins=None):
         self.max_bin_count = bins_count
         self.bins = list(Bins.USER_BINNING_METHOD(source_column, result_column))
 
@@ -180,7 +212,7 @@ class Bins(object):
             return
 
         if utils.is_numeric(result_column):
-            self.bins += self.bin_numeric(source_column, result_column, bins_count)
+            self.bins += self.bin_numeric(source_column, result_column, bins_count, custom_bins)
         else:
             self.bins += self.bin_categorical(source_column, result_column, bins_count)
 
@@ -190,12 +222,16 @@ class Bins(object):
         Bins.ONLY_USER_BINS = use_only_user_bins
 
     @staticmethod
-    def bin_numeric(source_col, res_col, size):
+    def bin_numeric(source_col, res_col, size, custom_bins=None):
         numeric_bins = []
         for bin_count in Bins.BIN_SIZES:
             if bin_count > size:
                 break
-            numeric_bins.append(NumericBin(source_col, res_col, bin_count))
+            if custom_bins:
+                bins = CustomizedNumericBin(source_col, res_col, custom_bins)
+            else:
+                bins = NumericBin(source_col, res_col, bin_count)
+            numeric_bins.append(bins)
 
         return numeric_bins
 

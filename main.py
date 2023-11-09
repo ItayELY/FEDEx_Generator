@@ -7,6 +7,8 @@ from src.fedex_generator.Operations.Filter import Filter
 from src.fedex_generator.Measures.ExceptionalityMeasure import ExceptionalityMeasure
 
 
+# def get_score(filter, desired_attribute, )
+
 plt.close("all")
 spotify_all = pd.read_csv(r'./spotify_all.csv')
 initial_size = len(spotify_all['id'])
@@ -23,9 +25,9 @@ f = Filter(source_df=spotify_all, source_scheme={}, attribute='popularity', oper
 measure = ExceptionalityMeasure()
 scores = measure.calc_measure(f, {}, use_only_columns={})
 print(scores)
-results = measure.calc_influence(top_k=7)
-res_energy = results[results['col'] == 'energy']
-print(res_energy['influence_vals'][13])
+results = measure.calc_influence(attribute='energy')
+# res_energy = results[results['col'] == 'energy']
+print(results[])#res_energy['influence_vals'].reset_index())
 
 score = (0.2 * (popular_new_quiet_size/initial_size)) + 0.8 * (0.4 * scores['energy'] + 0.6 * 0.15)
 print(score)

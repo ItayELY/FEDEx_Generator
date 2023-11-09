@@ -32,7 +32,7 @@ setup(
     long_description_content_type="text/markdown",
     long_description=get_long_description(),  # Long description read from the readme file
     project_urls={
-        'Git': 'https://github.com/analysis-bots/FEDEx_Generator',
+        'Git': 'https://github.com/ItayELY/FEDEx_Generator',
     },
     install_requires=[
         'wheel',

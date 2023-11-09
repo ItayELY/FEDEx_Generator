@@ -79,7 +79,7 @@ class BaseMeasure(object):
 
         return source_col, res_col
 
-    def calc_measure(self, operation_object, scheme, use_only_columns):
+    def calc_measure(self, operation_object, scheme, use_only_columns, custom_bins = None):
         self.operation_object = operation_object
         self.score_dict = {}
         self.max_val = -1
@@ -99,7 +99,7 @@ class BaseMeasure(object):
 
             size = operation_object.get_bins_count()
 
-            bin_candidates = Bins(source_col, res_col, size)
+            bin_candidates = Bins(source_col, res_col, size, custom_bins)
 
             measure_score = -np.inf
             for bin_ in bin_candidates.bins:
@@ -164,7 +164,7 @@ class BaseMeasure(object):
         return (influence - influence_mean) / np.sqrt(influence_var)
 
     def calc_influence(self, brute_force=False, top_k=TOP_K_DEFAULT,
-                       figs_in_row: int = DEFAULT_FIGS_IN_ROW, show_scores: bool = True, title: str = None, deleted = None):###
+                       figs_in_row: int = DEFAULT_FIGS_IN_ROW, show_scores: bool = True, title: str = None, deleted = None, attribute=None):###
         if deleted:###
             score_dict = deleted
         else:
@@ -182,6 +182,26 @@ class BaseMeasure(object):
         results_columns = ["score", "significance", "influence", "explanation", "bin", "influence_vals", "col"]
         results = pd.DataFrame([], columns=results_columns)
         figures = []
+        if attribute:
+            score, max_col_name, bins, _ = [score for score in list_scores_sorted if score[1] == attribute][0]
+            source_name, bins, score, _ = score_dict[max_col_name]
+            for current_bin in bins.bins:
+                influence_vals = self.get_influence_col(max_col_name, current_bin, brute_force)
+                influence_vals_list = np.array(list(influence_vals.values()))
+
+                max_values, max_influences = self.get_max_k(influence_vals, 1)
+
+                for max_value, influence_val in zip(max_values, max_influences):
+                    significance = self.get_significance(influence_val, influence_vals_list)
+                    if significance < SIGNIFICANCE_THRESHOLD:
+                        continue
+                    explanation = self.build_explanation(current_bin, max_col_name, max_value, source_name)
+
+                    new_result = dict(zip(results_columns,
+                                          [score, significance, influence_val, explanation, current_bin, influence_vals,
+                                           current_bin.get_bin_name(), max_col_name]))
+                    results = pd.concat([results, pd.DataFrame([new_result])], ignore_index=True)
+            return results
         for score, max_col_name, bins, _ in list_scores_sorted[:-K - 1:-1]:
             source_name, bins, score, _ = score_dict[max_col_name]
             for current_bin in bins.bins:
