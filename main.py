@@ -7,7 +7,15 @@ from src.fedex_generator.Operations.Filter import Filter
 from src.fedex_generator.Measures.ExceptionalityMeasure import ExceptionalityMeasure
 
 
-# def get_score(filter, desired_attribute, )
+def get_score(initial_df, source_df, result_df, desired_attribute):
+    initial_size = len(initial_df['id'])
+    source_size = len(source_df['id'])
+    result_size = len(result_df['id'])
+    f_src = Filter(source_df=source_df, source_scheme={}, attribute='popularity', operation_str='>', value=65, result_df=result_df)
+    f_init = Filter(source_df=initial_df, source_scheme={}, attribute='popularity', operation_str='>', value=65, result_df=result_df)
+    measure = ExceptionalityMeasure()
+    scores = measure.calc_measure(f, {}, use_only_columns={})
+
 
 plt.close("all")
 spotify_all = pd.read_csv(r'./spotify_all.csv')
@@ -23,11 +31,11 @@ popular_new_quiet_size = len(popular_new_quiet['id'])
 
 f = Filter(source_df=spotify_all, source_scheme={}, attribute='popularity', operation_str='>', value=65, result_df=popular_new_quiet)
 measure = ExceptionalityMeasure()
-scores = measure.calc_measure(f, {}, use_only_columns={})
+scores = measure.calc_measure(f, {}, use_only_columns={}, attribute='energy')
 print(scores)
 results = measure.calc_influence(attribute='energy')
 # res_energy = results[results['col'] == 'energy']
-print(results[])#res_energy['influence_vals'].reset_index())
+print(results['influence_vals'][0])#res_energy['influence_vals'].reset_index())
 
 score = (0.2 * (popular_new_quiet_size/initial_size)) + 0.8 * (0.4 * scores['energy'] + 0.6 * 0.15)
 print(score)

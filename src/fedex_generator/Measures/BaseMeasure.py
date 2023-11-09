@@ -79,12 +79,28 @@ class BaseMeasure(object):
 
         return source_col, res_col
 
-    def calc_measure(self, operation_object, scheme, use_only_columns, custom_bins = None):
+    def calc_measure(self, operation_object, scheme, use_only_columns, custom_bins = None, attribute = None):
         self.operation_object = operation_object
         self.score_dict = {}
         self.max_val = -1
         self.scheme = scheme
+        if attribute:
+            attr, dataset_relation = [a for a in operation_object.iterate_attributes() if a[0] == attribute][0]
+            column_scheme = scheme.get(attr, "ni").lower()
 
+            source_col, res_col = self.get_source_and_res_cols(dataset_relation, attr)
+
+            size = operation_object.get_bins_count()
+
+            bin_candidates = Bins(source_col, res_col, size, custom_bins)
+
+            measure_score = -np.inf
+            for bin_ in bin_candidates.bins:
+                measure_score = max(self.calc_measure_internal(bin_), measure_score)
+
+            self.score_dict[attr] = (
+                dataset_relation.get_source_name(), bin_candidates, measure_score, (source_col, res_col))
+            return dict([(attribute, _tuple[2]) for (attribute, _tuple) in self.score_dict.items()])
         for attr, dataset_relation in operation_object.iterate_attributes():
             column_scheme = scheme.get(attr, "ni").lower()
             if column_scheme == "i":
