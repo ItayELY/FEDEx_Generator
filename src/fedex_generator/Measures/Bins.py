@@ -120,14 +120,14 @@ class NumericBin(Bin):
 class CustomizedNumericBin(Bin):
     def __init__(self, source_column, result_column, bins):
         if source_column is not None:
-            binned_source_column, bins = pd.cut(source_column, bins=bins, labels=False, duplicates='drop')
+            binned_source_column = pd.cut(source_column, bins=bins, labels=False)
             bins = utils.drop_nan(bins)
-            if len(bins) > 0:
-                bins[0] -= 1  # stupid hack because pandas cut uses (,] boundaries, and the first bin is [,]
-            binned_result_column = pd.cut(result_column, bins=bins, labels=False, duplicates='drop')
+            # if len(bins) > 0:
+            #     bins[0] -= 1  # stupid hack because pandas cut uses (,] boundaries, and the first bin is [,]
+            binned_result_column = pd.cut(result_column, bins=bins, labels=False)
         else:
             binned_source_column = None
-            binned_result_column, bins = pd.cut(result_column, bins=bins, labels=False,
+            binned_result_column = pd.cut(result_column, bins=bins, labels=False,
                                                  duplicates='drop')  # .reset_index(drop=True)
 
         super().__init__(binned_source_column, binned_result_column, "NumericBin")
@@ -148,6 +148,7 @@ class CustomizedNumericBin(Bin):
         item_index = list(self.bins).index(item)
         next_item = self.bins[item_index + 1]
         return f"({utils.format_bin_item(item)}, {utils.format_bin_item(next_item)}]"
+
 
 class CategoricalBin(Bin):
     @staticmethod

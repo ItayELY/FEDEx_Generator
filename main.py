@@ -13,8 +13,28 @@ def get_score(initial_df, source_df, result_df, desired_attribute):
     result_size = len(result_df['id'])
     f_src = Filter(source_df=source_df, source_scheme={}, attribute='popularity', operation_str='>', value=65, result_df=result_df)
     f_init = Filter(source_df=initial_df, source_scheme={}, attribute='popularity', operation_str='>', value=65, result_df=result_df)
-    measure = ExceptionalityMeasure()
-    scores = measure.calc_measure(f, {}, use_only_columns={})
+    measure_src = ExceptionalityMeasure()
+    interest_src = measure_src.calc_measure(f_src, {}, use_only_columns={}, attribute=desired_attribute)
+    bins_src = measure_src.calc_influence(attribute=desired_attribute)['influence_vals'][1]
+    max_bin = max(bins_src, key=bins_src.get)
+    max_bin_val_src = bins_src[max_bin]
+
+    measure_init = ExceptionalityMeasure()
+    interest_init = measure_init.calc_measure(f_init, {}, use_only_columns={}, custom_bins=list(bins_src.keys())
+                                              , attribute=desired_attribute)
+    bins_init = measure_init.calc_influence(attribute=desired_attribute)['influence_vals'][1]
+    # max_bin = max(bins_src, key=bins_src.get)
+    excluded = [b for b in bins_src if b not in bins_init.keys()]
+    for e in excluded:
+        bins_init[e] = 0
+    max_bin_val_init = bins_init[max_bin]
+    local_score = (0.2 * (result_size/source_size)) + 0.8 * (0.2 * interest_src + 0.8 * max_bin_val_src)
+    absolute_score = (0.2 * (result_size / initial_size)) + 0.8 * (0.2 * interest_init + 0.8 * max_bin_val_init)
+    print(f'attribute {desired_attribute}: \ninterest_init={interest_init}\ninterest_src={interest_src}'
+          f'\nmax_bin={max_bin}\nmax_bin_val_init={max_bin_val_init}\nmax_bin_val_src={max_bin_val_src}\n'
+          f'local_score={local_score}\nabsolute_score={absolute_score}')
+
+
 
 
 plt.close("all")
@@ -28,16 +48,6 @@ popular_new_size = len(popular_new['id'])
 popular_new_quiet = popular_new[popular_new.loudness <= -19.5]
 popular_new_quiet_size = len(popular_new_quiet['id'])
 
-
-f = Filter(source_df=spotify_all, source_scheme={}, attribute='popularity', operation_str='>', value=65, result_df=popular_new_quiet)
-measure = ExceptionalityMeasure()
-scores = measure.calc_measure(f, {}, use_only_columns={}, attribute='energy')
-print(scores)
-results = measure.calc_influence(attribute='energy')
-# res_energy = results[results['col'] == 'energy']
-print(results['influence_vals'][0])#res_energy['influence_vals'].reset_index())
-
-score = (0.2 * (popular_new_quiet_size/initial_size)) + 0.8 * (0.4 * scores['energy'] + 0.6 * 0.15)
-print(score)
-print(popular_new_quiet_size/popular_new_size)
-print(popular_new_quiet_size/initial_size)
+get_score(spotify_all, popular_new, popular_new_quiet, 'energy')
+print("*********************************************")
+get_score(spotify_all, popular_new, popular_new_quiet, 'valence')

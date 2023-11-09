@@ -100,7 +100,7 @@ class BaseMeasure(object):
 
             self.score_dict[attr] = (
                 dataset_relation.get_source_name(), bin_candidates, measure_score, (source_col, res_col))
-            return dict([(attribute, _tuple[2]) for (attribute, _tuple) in self.score_dict.items()])
+            return measure_score
         for attr, dataset_relation in operation_object.iterate_attributes():
             column_scheme = scheme.get(attr, "ni").lower()
             if column_scheme == "i":
